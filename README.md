@@ -1,6 +1,8 @@
 
 # React + TypeScript + Vite
 
+<p>Mais um parte pronta</p>
+
 <p>Tivemos um progreço no projeto</p>
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
