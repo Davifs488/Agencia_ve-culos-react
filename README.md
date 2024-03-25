@@ -1,6 +1,6 @@
 
 # React + TypeScript + Vite
-
+<p>Segungo progesso do dia</p>
 <p>Mais um parte pronta</p>
 
 <p>Tivemos um progreço no projeto</p>
