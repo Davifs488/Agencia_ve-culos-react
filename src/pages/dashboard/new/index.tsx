@@ -1,3 +1,4 @@
+import { ChangeEvent, useState, useContext } from "react";
 import { Container } from "../../../components/container";
 import { DashboardHeader } from "../../../components/panelheader";
 
@@ -6,6 +7,15 @@ import { useForm } from "react-hook-form";
 import { Input } from "../../../components/input";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { AuthContext } from "../../../contexts/AuthConstext";
+import { v4 as uuidV4 } from "uuid";
+import { storage } from "../../../services/firebaseConnection";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  deleteObject,
+} from "firebase/storage";
 
 const schema = z.object({
   name: z.string().nonempty("O campo nome é obrigatorio"),
@@ -26,6 +36,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function New() {
+  const { user } = useContext(AuthContext);
   const {
     register,
     handleSubmit,
@@ -35,6 +46,36 @@ export function New() {
     resolver: zodResolver(schema),
     mode: "onChange",
   });
+
+  async function handleFile(e: ChangeEvent<HTMLInputElement>) {
+    if (e.target.files && e.target.files[0]) {
+      const image = e.target.files[0];
+
+      if (image.type === "image/jpeg" || image.type === "image/png") {
+        await handleUpload(image);
+      } else {
+        alert("Envie uma imagem jpeg ou png !");
+        return;
+      }
+    }
+  }
+
+  async function handleUpload(image: File) {
+    if (!user?.uid) {
+      return;
+    }
+
+    const currentUid = user?.uid;
+    const uidImage = uuidV4();
+
+    const uploadRef = ref(storage, `image/${currentUid}/${uidImage}`);
+
+    uploadBytes(uploadRef, image).then((snapshot) => {
+      getDownloadURL(snapshot.ref).then((downloadUrl) => {
+        // console.log("URL DE ACESSO DA FOTO", downloadUrl);
+      });
+    });
+  }
 
   function onSubmit(data: FormData) {
     console.log(data);
@@ -54,6 +95,7 @@ export function New() {
               type="file"
               accept="image/*"
               className="opacity-0 cursor-pointer"
+              onChange={handleFile}
             />
           </div>
         </button>
