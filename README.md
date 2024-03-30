@@ -1,5 +1,6 @@
 
 # React + TypeScript + Vite
+<p>importe de imagem para o firebase</p>
 <p>Hoje criamos o formulario de cadastro de carros para agencia</p>
 <p>Segungo progesso do dia</p>
 <p>Mais um parte pronta</p>
