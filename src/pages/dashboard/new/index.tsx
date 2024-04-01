@@ -2,7 +2,7 @@ import { ChangeEvent, useState, useContext } from "react";
 import { Container } from "../../../components/container";
 import { DashboardHeader } from "../../../components/panelheader";
 
-import { FiUpload } from "react-icons/fi";
+import { FiUpload, FiTrash } from "react-icons/fi";
 import { useForm } from "react-hook-form";
 import { Input } from "../../../components/input";
 import { z } from "zod";
@@ -35,6 +35,13 @@ const schema = z.object({
 
 type FormData = z.infer<typeof schema>;
 
+interface ImageItemProps {
+  uid: string;
+  name: string;
+  previewUrl: string;
+  url: string;
+}
+
 export function New() {
   const { user } = useContext(AuthContext);
   const {
@@ -46,6 +53,8 @@ export function New() {
     resolver: zodResolver(schema),
     mode: "onChange",
   });
+
+  const [carImages, setCarImages] = useState<ImageItemProps[]>([]);
 
   async function handleFile(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
@@ -73,6 +82,13 @@ export function New() {
     uploadBytes(uploadRef, image).then((snapshot) => {
       getDownloadURL(snapshot.ref).then((downloadUrl) => {
         // console.log("URL DE ACESSO DA FOTO", downloadUrl);
+        const imageItem = {
+          name: uidImage,
+          uid: currentUid,
+          previewUrl: URL.createObjectURL(image),
+          url: downloadUrl,
+        };
+        setCarImages((images) => [...images, imageItem]);
       });
     });
   }
@@ -81,12 +97,25 @@ export function New() {
     console.log(data);
   }
 
+  async function handleDeleteImage(item: ImageItemProps) {
+    const imagePath = `image/${item.uid}/${item.name}`;
+
+    const imageRef = ref(storage, imagePath);
+
+    try {
+      await deleteObject(imageRef);
+      setCarImages(carImages.filter((car) => car.url !== item.url));
+    } catch (err) {
+      console.log("ERRO AO DELETAR");
+    }
+  }
+
   return (
     <Container>
       <DashboardHeader />
 
       <div className="w-full bg-white p-3 rounded-lg fle flex-col sm:flex-row items-center gap-2">
-        <button className="border-2 w-48 rounded-lg flex items-center justify-center cursor-pointer border-gray-600 h-32 md:w-48">
+        <button className="border-2 w-28 rounded-lg flex items-center justify-center cursor-pointer border-gray-600 h-32 md:w-48">
           <div className="absolute cursor-pointer">
             <FiUpload size={30} color="#000" />
           </div>
@@ -99,6 +128,26 @@ export function New() {
             />
           </div>
         </button>
+
+        {carImages.map((item) => (
+          <div
+            key={item.name}
+            className="w-full h-32 flex items-center justify-center relative"
+          >
+            <button
+              className="absolute"
+              onClick={() => handleDeleteImage(item)}
+            >
+              <FiTrash size={28} color="#fff" />
+            </button>
+
+            <img
+              src={item.previewUrl}
+              className=" rounded-lg h-full h-28 object-cover"
+              alt="Foto do Carro"
+            />
+          </div>
+        ))}
       </div>
 
       <div className="w-full bg-white p-3 rounded-lg flex flex-col sm:flex-row items-center gap-2 mt-2">
